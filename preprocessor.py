@@ -175,6 +175,52 @@ class Preprocessor:
         print(tokens)
 
         dbg("Performing previous compilation steps on included code...")
+        if len(tokens) < 2:
+            fatal_error(tokens[0], "Expected a filename after include...")
+
+        filename = ""
+        if tokens[1].token == "<" and tokens[-1].token == ">":
+            filename = tokens[2:-1]
+            return self.handle_library_include(filename)
+        elif len(tokens[1].token) > 2 and tokens[1].token[0] == '"' and tokens[-1].token[-1] == '"':
+            filename = tokens[1].token[1:-1]
+
+        filename = base_filename + filename
+
+        # look for this file name in each include dir
+        the_dir = None
+        if os.path.isfile(filename):
+            the_dir = "./"
+        else:
+            for x in include_dirs:
+                if os.path.isfile(x + filename):
+                    the_dir = x
+                    break
+
+        if the_dir == None:
+            fatal_error(tokens[0], f"Local file {filename} does not exist...")
+
+        filename = f"{the_dir}{filename}"
+        while filename[:2] == "./":
+            filename = filename[2:]
+        dbg(f"Including local file: {filename}")
+
+        if filename in included_already:
+            fatal_error(tokens[0], f"This is a circular include...\n{included_already}")
+
+        included_already.add(filename)
+        result = lexer.Lexer(filename).tokens
+        result = normalizer.Normalizer(result).tokens
+
+        splitted = filename.split("/")
+        if len(splitted) <= 1:
+            new_base_filename = ""
+        else:
+            new_base_filename = "/".join(splitted[:-1]) + "/"
+
+        result = self.handle_compiler_directives(result, include_dirs, included_already, new_base_filename)
+
+        dbg("Finished Previous compilation steps on included code!")
         return result
         
 
