@@ -7,6 +7,8 @@ import cli_parser
 import lexer
 import normalizer
 import preprocessor
+import simplifier
+import converter
 
 
 class Main:
@@ -52,7 +54,6 @@ class Main:
         dbg("Resulting Tokens:")
         dbg(tokens)
 
-        """
         # simplification
         dbg("##############################")
         dbg("Performing Variable Simplification...")
@@ -75,6 +76,7 @@ class Main:
         dbg("Resulting Tokens:")
         dbg(tokens)
 
+        """
         # operator
         dbg("##############################")
         dbg("Performing Operator Conversion...")
