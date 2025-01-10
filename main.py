@@ -8,7 +8,6 @@ import lexer
 import normalizer
 import preprocessor
 import simplifier
-import converter
 
 
 class Main:
@@ -67,6 +66,7 @@ class Main:
         dbg(tokens)
 
         # conversion 
+        """
         dbg("##############################")
         dbg("Performing Conversion...")
         the_converter = converter.Converter(tokens)
@@ -76,7 +76,6 @@ class Main:
         dbg("Resulting Tokens:")
         dbg(tokens)
 
-        """
         # operator
         dbg("##############################")
         dbg("Performing Operator Conversion...")

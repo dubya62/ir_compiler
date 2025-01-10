@@ -357,6 +357,92 @@ class Simplifier:
 
     def generalize_variables(self, tokens:list[Token]) -> list[Token]:
         dbg("Generalizing variables...")
+        i = 0
+        n = len(tokens)
+
+        builtins = set(["++", "--", "*", "+", "-", "(", ")", ".", "[", "]", "{", "}", "<", ">", ",", "/", "=", "|", "%", "#", "!", "~", "^", "&", ";", ":", "?", "return", "break", "void", "if", "else", "for", "while", "switch", "case", "short", "long", "const", "unsigned", "struct", "signed", "sizeof", "continue", "auto", "register", "static", "$STRUCT", "$UNION", "$ENUM", "$TYPE", "#FIXFUNC", "goto"])
+
+        scopes = [{}]
+
+        varnum = 0
+
+        while i < n:
+            if tokens[i] == "{":
+                scopes.append({})
+            elif tokens[i] == "}":
+                if len(scopes) == 0:
+                    fatal_error(tokens[i], "Mismatched }...")
+                scopes.pop()
+            elif tokens[i].token not in builtins:
+                # make sure it is not a string, char, or float literal
+                if len(tokens[i].token) > 0:
+                    if tokens[i].token[0] in ['"', "'"]:
+                        i += 1
+                        continue
+                    try:
+                        float(tokens[i].token)
+                        i += 1
+                        continue
+                    except:
+                        pass
+                
+
+                found = False
+                for j in range(len(scopes)-1, -1, -1):
+                    if tokens[i].token in scopes[j]:
+                        # TODO: throw an redefinition error if the token before was a type
+                        tokens[i].token = scopes[j][tokens[i].token]
+                        found = True
+                        break
+                if not found:
+                    # TODO: throw an undefined error if the token before was not a type
+                    self.definitions["#" + str(varnum)] = tokens[i].token
+                    scopes[-1][tokens[i].token] = "#" + str(varnum)
+                    tokens[i].token = scopes[-1][tokens[i].token]
+                    varnum += 1
+            i += 1
+
+        dbg("Finished generalizing variables!")
+        self.varnum = varnum
+
+        return tokens
+        
+    
+    def fix_extra_scopes(self, tokens:list[Token]) -> list[Token]:
+        dbg("Removing extra function scopes...")
+        i = 0
+        n = len(tokens)
+
+        dbg(tokens)
+
+        while i < n:
+            if tokens[i].token == "#FIXFUNC":
+                starting_index = i
+                del tokens[i]
+                n -= 1
+                if i < n:
+                    del tokens[i]
+                    n -= 1
+
+                braces = ["{"]
+
+                while i < n:
+                    if tokens[i] == "{":
+                        braces.append("{")
+                    elif tokens[i] == "}":
+                        if len(braces) == 0:
+                            fatal_error(tokens[i], "Mismatched }...")
+                        braces.pop()
+                        if len(braces) == 0:
+                            del tokens[i]
+                            n -= 1
+                            break
+
+                    i += 1
+                i = starting_index
+            i += 1
+
+        dbg("Finished removing extra function scopes...")
         return tokens
 
 
