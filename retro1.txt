@@ -1,0 +1,21 @@
+
+[] = tool required to perform step
+() = people who worked on that tool this sprint
+
+COMPILER:
+    Objective: accept a C source file and optimize it using community generated code
+
+    [C -> ir compiler](Holden and Sam) - compile C source file to our custom IR
+    [rule based engine](Holden), [rule database] - apply symbol subsitution rules from a database to the IR
+    [ir -> C compiler](Trisha) - compile optimized IR back to platform independent C
+
+
+WEBSITE: (Calvin, Trisha, and Sam)
+    Objective: collect verifiable solutions to programming problems to increase database knowledge
+
+    [Website] - User writes and submits a solution to a given problem in C
+    [C -> ir compiler]- compile to custom IR
+    [ir -> rule](future sprint) - convert IR to a rule and add to the rule database
+    
+
+
