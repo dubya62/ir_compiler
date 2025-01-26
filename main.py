@@ -9,6 +9,7 @@ import normalizer
 import preprocessor
 import simplifier
 import converter
+import operator
 
 
 class Main:
@@ -76,7 +77,6 @@ class Main:
         dbg("Resulting Tokens:")
         dbg(tokens)
 
-        """
         # operator
         dbg("##############################")
         dbg("Performing Operator Conversion...")
@@ -86,8 +86,6 @@ class Main:
         dbg("Finished Performing Operator Conversion!")
         dbg("Resulting Tokens:")
         dbg(tokens)
-        """
-
 
         dbg("")
         print_errors()
