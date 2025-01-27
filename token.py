@@ -11,6 +11,9 @@ class Token:
     def __eq__(self, other:str):
         return self.token == other
 
+    def __len__(self):
+        return len(self.token)
+
     def __str__(self) -> str:
         return self.token
 

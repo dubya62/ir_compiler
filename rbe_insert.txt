@@ -1,0 +1,28 @@
+
+
+You are given:
+    filename of C source code
+    filename IR of that C file (given from compiler)
+    filename of rule database
+    line number to insert on
+
+Compile the C source with gcc
+Run the Compiled program with perf stat to get metrics
+Insert the rules like this
+
+Existing Database file
+```
+"else if":1:2 eq "else { if }":3:4
+```
+
+After insert of "elif" on line 1 of that file with metrics 20 and 13
+```
+"elif":20:13 eq "else if":1:2 eq "else { if }":3:4
+```
+
+
+
+
+
+
+

@@ -11,6 +11,8 @@ import simplifier
 import converter
 import operator
 
+import memory_check
+
 
 class Main:
     def __init__(self):
@@ -89,6 +91,13 @@ class Main:
 
         dbg("")
         print_errors()
+
+        dbg("##############################")
+        dbg("Performing Memory Checking...")
+        for x in tokens:
+            print(f"Checking function ({x.name})")
+            memory_check.check_memory([y.token for y in x.tokens])
+            print("\tFunction is Safe")
 
         return 0
 
