@@ -21,6 +21,7 @@ class Preprocessor:
             base_filename = ""
         else:
             base_filename = "/".join(splitted[:-1]) + "/"
+
         self.tokens = self.handle_compiler_directives(self.tokens, include_dirs, set(), base_filename)
 
 
@@ -34,6 +35,7 @@ class Preprocessor:
 
         conditional_stack = []
         conditional_types = []
+
         while i < n:
             # handle defined words
             if tokens[i].token in self.definitions:

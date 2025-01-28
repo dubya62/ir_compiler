@@ -7,22 +7,15 @@ class Lexer:
     def __init__(self, filename:str):
         self.filename = filename
 
-        self.file_data = self.open_file(self.filename)
+        # open the file and get its data as a string
+        self.file_data: str = self.open_file(self.filename)
 
+        # break the string into Tokens
         self.tokens = self.tokenize(self.file_data)
-        for token in self.tokens:
-            token.filename = self.filename
 
         # combine postfix and prefix operators while there are still spaces
-        i = 0
-        n = len(self.tokens)
-        while i < n:
-            if self.tokens[i].token in ["+", "-"]:
-                if i + 1 < n and self.tokens[i].token == self.tokens[i+1].token:
-                    self.tokens[i].token += self.tokens[i+1].token
-                    del self.tokens[i+1]
-                    n -= 1
-            i += 1
+        self.tokens = self.combine_prefix_and_postfix(self.tokens)
+
 
 
     def open_file(self, filename:str) -> str:
@@ -40,12 +33,13 @@ class Lexer:
         i = 0
         n = len(file_data)
 
+        # characters that cause a token break
         breakChars = {"~", "!", "#", "%", "^", "&", "*", "(", ")", "-", "+", "=", "{", "}", "[", "]", "|", '\\', "'", '"', ';', ":", "/", "?", ".", ",", "<", ">", '\n', '\t', ' '}
 
         result = []
         line_number = 1
-
         current_token = ""
+
         while i < n:
 
             if file_data[i] in breakChars:
@@ -58,13 +52,44 @@ class Lexer:
                 result.append(Token(file_data[i], line_number, ""))
 
                 current_token = ""
-
             else:
                 current_token += file_data[i]
 
             i += 1
 
+
+        for token in result:
+            token.filename = self.filename
+
         return result
+
+
+    def combine_prefix_and_postfix(self, tokens):
+        """
+        Combine ++ and -- into single tokens while spaces are still here
+        """
+
+        i = 0
+        n = len(tokens)
+
+        while i < n:
+            if tokens[i].token not in ["+", "-"]:
+                i += 1
+                continue
+
+            if i + 1 >= n:
+                break
+
+            if tokens[i].token != tokens[i+1].token:
+                i += 1
+                continue
+
+            tokens[i].token += tokens[i+1].token
+            del tokens[i+1]
+            n -= 1
+            i += 1
+
+        return tokens
 
 
 

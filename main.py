@@ -10,6 +10,7 @@ import preprocessor
 import simplifier
 import converter
 import operator
+import type_checker
 
 import memory_check
 
@@ -90,8 +91,13 @@ class Main:
         dbg(tokens)
 
         dbg("")
-        print_errors()
 
+        dbg("##############################")
+        dbg("Performing Type Checking")
+        the_types = type_checker.TypeChecker(tokens)
+        print(the_operator.token_types)
+
+        print_errors()
         dbg("##############################")
         dbg("Performing Memory Checking...")
         for x in tokens:

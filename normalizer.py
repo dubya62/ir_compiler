@@ -20,16 +20,6 @@ class Normalizer:
         self.tokens = self.combine_floats(self.tokens)
 
 
-    def get_backslashes_before(self, tokens, index):
-        result = 0
-        for i in range(index-1, -1, -1):
-            if tokens[i] == '\\':
-                result += 1
-            else:
-                return result
-        return result
-
-
         
     def remove_comments(self, tokens:list[Token]) -> list[Token]:
         dbg("Removing Comments From The Tokens...")
@@ -91,6 +81,17 @@ class Normalizer:
             i += 1
 
         dbg("Finished Removing Comments From The Tokens!")
+        return result
+
+
+    def get_backslashes_before(self, tokens, index):
+        result = 0
+
+        for i in range(index-1, -1, -1):
+            if tokens[i] != "\\":
+                return result
+            result += 1
+
         return result
 
 

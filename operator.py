@@ -85,7 +85,6 @@ class Operator:
         if, else
         goto, @x, #x, :
         <char, int, float, and string literals>
-
         """
 
         
@@ -824,6 +823,10 @@ class Operator:
                     result.append(Token("#" + str(self.varnum), x.line_number, x.filename))
                     result.append(Token("=", x.line_number, x.filename))
                     val_stack.append(Token("#" + str(self.varnum), x.line_number, x.filename))
+
+                    # TODO: infer the type of <first> <op> <second>
+                    
+
                     self.varnum += 1
 
                 result.append(first)

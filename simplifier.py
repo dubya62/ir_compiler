@@ -39,8 +39,8 @@ class Simplifier:
         dbg("Converting Type Tokens...")
         i = starting_index
         n = len(tokens)
-        if ending_index < n:
-            n = ending_index
+
+        n = min(n, ending_index)
         starting_n = n
 
         builtin_types = set(["short", "long", "int", "float", "double", "void", "signed", "unsigned", "const", "char"])
