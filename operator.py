@@ -77,6 +77,9 @@ class Operator:
 
         # convert derefs to accesses
 
+        # remove remaining parenthesis
+        self.remove_remaining_parenthesis()
+
         """
         remaining tokens:
         $INFER, $TYPE, $ENUM, $STRUCTURE_DEFINITION, $UNION_DEFINITION, $TYPEDEF_DEFINITION
@@ -649,6 +652,9 @@ class Operator:
         i = 0
         n = len(tokens)
 
+        print("Removing TYPES:")
+        print(tokens)
+
         while i < n:
             if tokens[i] == "$TYPE":
                 if i + 1 < n and len(tokens[i+1].token) > 0 and tokens[i+1].token[0] == "#":
@@ -660,7 +666,11 @@ class Operator:
                         continue
                     if varnum >= len(self.token_types):
                         fatal_error(tokens[i+1], "There is a serious problem with the compiler. Report this...")
-                    self.token_types[varnum] = tokens[i].types
+
+                    new_type = self.parse_type_string(tokens[i].types)
+                    print(f"type val: {tokens[i].types} {new_type}")
+
+                    self.token_types[varnum] = new_type
                     del tokens[i]
                     n -= 1
                     continue
@@ -676,6 +686,52 @@ class Operator:
         print(f"Token types: {self.token_types}")
 
         return tokens
+
+    
+    def parse_type_string(self, type_tokens):
+        print(f"Parsing...")
+
+        pointers = ""
+        sign = ""
+        size = ""
+
+        i = 0
+        n = len(type_tokens)
+
+        while i < n:
+            match(type_tokens[i]):
+                case "int":
+                    size = "32"
+                    sign = "i"
+                case "long":
+                    size = "64"
+                    sign = "i"
+                case "short":
+                    size = "16"
+                    sign = "i"
+                case "float":
+                    sign = "f"
+                case "double":
+                    sign = "f"
+                case "unsigned":
+                    sign = "u"
+                case "signed":
+                    sign = "i"
+                case "char":
+                    sign = "u"
+                    size = "8"
+                case "void":
+                    sign = "void"
+                    size = ""
+                case "*":
+                    pointers += "*"
+                case "struct": # TODO: convert to structure
+                    pass
+                case "union": # TODO: convert to union type
+                    pass
+            i += 1
+
+        return f"{pointers}{sign}{size}"
 
 
     def break_multiple_operations(self, tokens:list[Token]) -> list[Token]:
@@ -948,7 +1004,10 @@ class Operator:
                         i -= 1
                         n -= 1
                     the_function = standard.Function(the_name, return_type, arg_types, arg_constraints, func_tokens, declaration)
-                    tokens[i] = the_function
+                    if i < len(tokens):
+                        tokens[i] = the_function
+                    else:
+                        tokens.append(the_function)
                     self.functions.append(the_function)
             
             i += 1
@@ -1292,6 +1351,19 @@ class Operator:
                 i += 1
 
             func.tokens = tokens
+
+
+    def remove_remaining_parenthesis(self):
+        for func in self.functions:
+            i = 0
+            n = len(func.tokens)
+            while i < n:
+                if func.tokens[i] == "(" or func.tokens[i] == ")":
+                    del func.tokens[i]
+                    i -= 1
+                    n -= 1
+                i += 1
+
         
 
 

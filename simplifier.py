@@ -5,6 +5,14 @@ from debug import *
 import types
 
 
+def is_int_literal(token):
+    try:
+        int(token.token)
+        return True
+    except:
+        return False
+
+
 class Simplifier:
     def __init__(self, tokens:list[Token]):
         self.tokens = tokens
@@ -181,10 +189,10 @@ class Simplifier:
         n = len(tokens)
         starting_len = n
 
-        type_tokens = set(["*", "&"])
+        type_tokens = set(["*", "&", "[", "]"])
 
         while i < n:
-            if tokens[i].token not in builtin_types and tokens[i].token not in type_tokens:
+            if tokens[i].token not in builtin_types and tokens[i].token not in type_tokens and not is_int_literal(tokens[i]):
                 if tokens[i].token in ["=", "{", ";", "(", ",", ")"]:
                     break;
                 i += 1
@@ -192,8 +200,27 @@ class Simplifier:
             current_type.append(tokens[i])
             del tokens[i]
             n -= 1
+
+        j = 0
+        m = len(current_type)
+        bracket_stack = []
+        result = []
+        while j < m:
+            if current_type[j] == "[":
+                bracket_stack.append(current_type[j])
+                result.append(Token("*", current_type[j].filename, current_type[j].line_number))
+            elif current_type[j] == "]":
+                bracket_stack.pop()
+                j += 1
+                continue
+
+            if len(bracket_stack) == 0:
+                result.append(current_type[j])
+            
+            j += 1
+
         i = return_index
-        tokens.insert(i, types.Type(current_type, the_line_number, the_filename))
+        tokens.insert(i, types.Type(result, the_line_number, the_filename))
         n += 1
         return n - starting_len
 

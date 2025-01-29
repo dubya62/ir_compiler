@@ -3,7 +3,7 @@
 CODEFILES :=*.py
 MAIN :=main
 
-TESTFLAGS :=testcase1.c
+TESTFLAGS :=testcase3.c
 
 
 $(MAIN): $(CODEFILES) memory-checking
