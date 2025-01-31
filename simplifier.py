@@ -78,11 +78,16 @@ class Simplifier:
                 new_starting_index = i + 1
                 new_ending_index = n
 
+                the_name = ""
+
                 if i + 1 < n and tokens[i+1].token in ["{", ";"]:
                     if tokens[i] == "struct":
                         self.structures.append(tokens[i+1].token)
                     else:
                         self.unions.append(tokens[i+1].token)
+                    the_name = tokens[i+1].token
+                elif i + 1 < n:
+                    the_name = tokens[i+1].token
 
                 while i < n:
                     if tokens[i] == "{":
@@ -131,10 +136,10 @@ class Simplifier:
                 i = return_index
 
                 if tokens[i] == "union":
-                    new_union = types.Union(the_types, tokens[i].line_number, tokens[i].filename)
+                    new_union = types.Union(the_name, the_types, tokens[i].line_number, tokens[i].filename)
                     tokens[i] = new_union
                 elif tokens[i] == "struct":
-                    new_struct = types.Structure(the_types, tokens[i].line_number, tokens[i].filename)
+                    new_struct = types.Structure(the_name, the_types, tokens[i].line_number, tokens[i].filename)
                     tokens[i] = new_struct
 
             elif tokens[i].token in builtin_types:

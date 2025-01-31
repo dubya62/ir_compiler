@@ -24,21 +24,22 @@ class Operator:
         # x = x + (3)
         self.tokens = self.convert_assignment_operators(self.tokens)
 
+        # convert type casts to use "cast"
+        self.tokens = self.convert_casts(self.tokens)
+
+
         # convert unary operators
         self.tokens = self.convert_unary_operators(self.tokens)
 
         # convert calls and accesses to use "call" and "access"
         self.tokens = self.convert_calls_and_accesses(self.tokens)
 
-        # convert type casts to use "cast"
-        self.tokens = self.convert_casts(self.tokens)
-
-        # break up lines that have more than one operation on them
-        self.tokens = self.break_multiple_operations(self.tokens)
-
         # Remove $TYPE, $STRUCT, $UNION, $ENUM, and $INFER variables
         self.token_types = ["NA"] * self.varnum
         self.tokens = self.remove_types(self.tokens)
+
+        # break up lines that have more than one operation on them
+        self.tokens = self.break_multiple_operations(self.tokens)
 
         # convert unary + and -
         self.tokens = self.convert_unary_plus_and_minus(self.tokens)
@@ -190,6 +191,9 @@ class Operator:
                 i += 1
                 n += 1
                 tokens.insert(starting_index, Token("#" + str(self.varnum), tokens[starting_index].line_number, tokens[starting_index].filename))
+
+
+
                 starting_index += 1
                 i += 1
                 n += 1
@@ -562,9 +566,10 @@ class Operator:
         return tokens
 
     def convert_unary_operators(self, tokens:list[Token]) -> list[Token]:
+        print(f"CONVERTING UNARY OPERATORS: {tokens}")
         unary_operators = {"~":"bitnot", "!":"lognot", "&":"ref", "*":"deref", "-":"un-", "+":"un+"}
 
-        operators = set(["~", "!", "%", "^", "&", "|", "-", "+", "/", "<", ">", "*", "==", "->", "&&", "||", ".", "(", "[", ">>", "<<", "=", ";", "{", "}", "<=", ">=", "!="])
+        operators = set(["~", "!", "%", "^", "&", "|", "-", "+", "/", "<", ">", "*", "==", "->", "&&", "||", ".", "(", "[", ">>", "<<", "=", ";", "{", "}", "<=", ">=", "!=", "cast"])
 
         i = 0
         n = len(tokens)
@@ -648,7 +653,7 @@ class Operator:
         return tokens
 
 
-    def remove_types(self, tokens:list[Token]) -> list[Token]:
+    def remove_types(self, tokens:list[Token], structures=[], unions=[]) -> list[Token]:
         i = 0
         n = len(tokens)
 
@@ -667,7 +672,7 @@ class Operator:
                     if varnum >= len(self.token_types):
                         fatal_error(tokens[i+1], "There is a serious problem with the compiler. Report this...")
 
-                    new_type = self.parse_type_string(tokens[i].types)
+                    new_type = self.parse_type_string(tokens[i].types, structures, unions)
                     print(f"type val: {tokens[i].types} {new_type}")
 
                     self.token_types[varnum] = new_type
@@ -675,9 +680,9 @@ class Operator:
                     n -= 1
                     continue
             elif tokens[i] == "$STRUCT":
-                pass
+                structures.append(tokens[i])
             elif tokens[i] == "$UNION":
-                pass
+                unions.append(tokens[i])
             elif tokens[i] == "$INFER":
                 pass
 
@@ -685,11 +690,48 @@ class Operator:
 
         print(f"Token types: {self.token_types}")
 
+        self.type_structures = structures
+        self.type_unions = unions
+
         return tokens
 
+
+    def remove_struct_types(self, tokens:list[Token], structures=[], unions=[]) -> list[Token]:
+        i = 0
+        n = len(tokens)
+
+        print("Removing TYPES FROM STRUCT:")
+        print(tokens)
+
+        result = []
+
+        while i < n:
+            if tokens[i] == "$TYPE":
+                print("found a type")
+                if i + 1 < n and len(tokens[i+1].token) > 0:
+                    new_type = self.parse_type_string(tokens[i].types, structures, unions)
+                    print(f"type val: {tokens[i].types} {new_type}")
+
+                    result.append(new_type)
+                    del tokens[i]
+                    n -= 1
+                    continue
+            elif tokens[i] == "$STRUCT":
+                structures.append(tokens[i])
+            elif tokens[i] == "$UNION":
+                unions.append(tokens[i])
+            elif tokens[i] == "$INFER":
+                pass
+
+            i += 1
+
+        print(f"FINISHED REMOVING TYPES FROM STRUCT")
+
+        return result
+
     
-    def parse_type_string(self, type_tokens):
-        print(f"Parsing...")
+    def parse_type_string(self, type_tokens, structures, unions):
+        print(f"Parsing... {type_tokens}")
 
         pointers = ""
         sign = ""
@@ -697,6 +739,8 @@ class Operator:
 
         i = 0
         n = len(type_tokens)
+
+        result = ""
 
         while i < n:
             match(type_tokens[i]):
@@ -726,12 +770,34 @@ class Operator:
                 case "*":
                     pointers += "*"
                 case "struct": # TODO: convert to structure
-                    pass
+                    print("found struct")
+                    struct_types = ""
+                    if i + 1 < n:
+                        struct_name = type_tokens[i+1].token
+                        for struct in structures:
+                            print(struct_name, struct.name)
+                            if struct.name == struct_name:
+                                print(struct.types)
+                                print("Found THE struct")
+                                struct_types = struct.types[1:-1]
+                    result = "s{" + f"{','.join(self.remove_struct_types(struct_types, structures, unions))}" + "}"
+                    i += 1
                 case "union": # TODO: convert to union type
-                    pass
+                    print("found union")
+                    union_types = ""
+                    if i + 1 < n:
+                        union_name = type_tokens[i+1].token
+                        for union in unions:
+                            print(union_name, union.name)
+                            if union.name == union_name:
+                                print(union.types)
+                                print("Found THE union")
+                                union_types = union.types[1:-1]
+                    result = "u{" + f"{','.join(self.remove_struct_types(union_types, structures, unions))}" + "}"
+                    i += 1
             i += 1
 
-        return f"{pointers}{sign}{size}"
+        return f"{pointers}{result}{sign}{size}"
 
 
     def break_multiple_operations(self, tokens:list[Token]) -> list[Token]:
@@ -875,13 +941,82 @@ class Operator:
                     for y in prefix:
                         result.append(y)
                 else:
-                    result.append(Token("$INFER", x.line_number, x.filename))
+                    # result.append(Token("$INFER", x.line_number, x.filename))
                     result.append(Token("#" + str(self.varnum), x.line_number, x.filename))
                     result.append(Token("=", x.line_number, x.filename))
                     val_stack.append(Token("#" + str(self.varnum), x.line_number, x.filename))
 
                     # TODO: infer the type of <first> <op> <second>
-                    
+                    while len(self.token_types) <= self.varnum:
+                        self.token_types.append("NA")
+
+                    """
+                    "call"
+                    "access"
+                    "."
+                    "->"
+                    "un+"
+                    "un-"
+                    "lognot"
+                    "bitnot"
+                    "cast"
+                    "deref"
+                    "ref"
+                    "*"
+                    "/"
+                    "%"
+                    "+"
+                    "-"
+                    "<<"
+                    ">>"
+                    "<"
+                    "<="
+                    ">"
+                    ">="
+                    "=="
+                    "!="
+                    "&"
+                    "^"
+                    "|"
+                    "&&"
+                    "||"
+                    "="
+                    ","
+                    "un++"
+                    "un--"
+                    "lognot"
+                    "bitnot"
+                    "cast"
+                    "deref"
+                    "ref"
+                    """
+                    match(x.token):
+                        case "cast":
+                            self.token_types[self.varnum] = self.parse_type_string(first.types, self.type_structures, self.type_unions)
+                            result.append(second)
+                            self.varnum += 1
+                            result.append(Token(";", x.line_number, x.filename))
+                            continue
+                        case "+":
+                            pass
+                        case "-":
+                            pass
+                        case "+":
+                            pass
+                        case "+":
+                            pass
+                        case "+":
+                            pass
+                        case "+":
+                            pass
+                        case "+":
+                            pass
+                        case "+":
+                            pass
+                        case "+":
+                            pass
+                        case "+":
+                            pass
 
                     self.varnum += 1
 
