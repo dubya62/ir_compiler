@@ -41,6 +41,9 @@ class Operator:
         # break up lines that have more than one operation on them
         self.tokens = self.break_multiple_operations(self.tokens)
 
+        # remove any remaining inferences
+        self.tokens = self.remove_remaining_inferences(self.tokens)
+
         # convert unary + and -
         self.tokens = self.convert_unary_plus_and_minus(self.tokens)
 
@@ -81,6 +84,8 @@ class Operator:
         # remove remaining parenthesis
         self.remove_remaining_parenthesis()
 
+        # remove any remaining inferences
+        self.tokens = self.remove_remaining_inferences(self.tokens)
         """
         remaining tokens:
         $INFER, $TYPE, $ENUM, $STRUCTURE_DEFINITION, $UNION_DEFINITION, $TYPEDEF_DEFINITION
@@ -799,6 +804,282 @@ class Operator:
 
         return f"{pointers}{result}{sign}{size}"
 
+    
+    def remove_remaining_inferences(self, tokens:list[Token]) -> list[Token]:
+
+        print("Removing remaining inferences...")
+
+        i = 0
+        n = len(tokens)
+
+        while i < n:
+            if tokens[i] == "$INFER":
+                if i + 1 < n:
+                    the_var = tokens[i+1].token
+                    print(f"FOUND INFERENCE {the_var}")
+                    if len(the_var) < 2:
+                        i += 1
+                        continue
+
+                    the_varnum = the_var[1:]
+                    try:
+                        the_varnum = int(the_varnum)
+                    except:
+                        i += 1
+                        continue
+
+                    while len(self.token_types) <= the_varnum:
+                        the_varnum.append("NA")
+
+                    inferred_type = "NA"
+                    if i + 2 < n:
+                        next_token = tokens[i+2]
+                        if next_token != "=":
+                            inferred_type = "NA"
+                        else:
+                            operator = None
+                            first = None
+                            second = None
+                            if i + 3 < n:
+                                first = tokens[i+3]
+                            if i + 4 < n:
+                                operator = tokens[i+4]
+                                if operator.token in [";", "}", "{"]:
+                                    operator = None
+                            if i + 5 < n:
+                                second = tokens[i+5]
+
+                            if operator is not None:
+                                inferred_type = self.infer_type(first, operator, second)
+                                print("INFERRING TYPE")
+                            elif first is not None:
+                                inferred_type = self.infer_type(first)
+
+                    self.token_types[the_varnum] = inferred_type
+
+                    del tokens[i]
+                    i -= 1
+                    n -= 1
+
+            i += 1
+
+
+        print("Finished removing remaining inferences!")
+        print(tokens)
+
+        return tokens
+
+    
+    def get_literal_type(self, token):
+        if len(token.token) > 0 and token.token[0] == "#":
+            the_varnum = token.token[1:]
+            try:
+                the_varnum = int(the_varnum)
+            except:
+                return "NA"
+
+            while len(self.token_types) <= the_varnum:
+                the_varnum.append("NA")
+
+            return self.token_types[the_varnum]
+
+        # we know it is a literal
+        if len(token.token) > 0 and token.token[0] == '"':
+            return "*u8"
+
+        if len(token.token) > 0 and token.token[0] == "'":
+            return "u8"
+
+        try:
+            value = float(token.token)
+        except:
+            return "NA"
+
+        if "." in token.token:
+            # this is a float
+            return "f64"
+
+        # this is an int
+        sign = "i"
+        # if value > 0:
+        #     sign = "u"
+
+        if sign == "u":
+            # if value < 256:
+            #     size = "8"
+            # elif value < 65536:
+            #     size = "16"
+            if value < 4294967296:
+                size = "32"
+            else:
+                size = "64"
+        else:
+            # if -129 < value < 128:
+            #     size = "8"
+            # elif -32769 < value < 32768:
+            #     size = "16"
+            if -2147483649 < value < 2147483648:
+                size = "32"
+            else:
+                size = "64"
+
+        return f"{sign}{size}"
+
+
+    def infer_type(self, first, operator=None, second=None):
+        first_literal_type = self.get_literal_type(first)
+
+        if operator is None or second is None:
+            # use the type of the first
+            return first_literal_type
+
+        second_literal_type = self.get_literal_type(second)
+
+        first_sign = None
+        first_size = None
+        second_sign = None
+        second_size = None
+        first_is_pointer = False
+        second_is_pointer = False
+        if first_literal_type is not None:
+            if len(first_literal_type) > 0 and first_literal_type != "NA":
+                first_sign = first_literal_type[0]
+                if first_sign in ["u", "f", "i"]:
+                    try:
+                        first_size = int(first_literal_type[1:])
+                    except:
+                        first_sign = None
+                        first_size = None
+                else:
+                    first__sign = None
+                    if first_literal_type[0] == "*":
+                        first_is_pointer = True
+        if second_literal_type is not None:
+            if len(second_literal_type) > 0 and second_literal_type != "NA":
+                second_sign = second_literal_type[0]
+                if second_sign in ["u", "f", "i"]:
+                    try:
+                        second_size = int(second_literal_type[1:])
+                    except:
+                        second_sign = None
+                        second_size = None
+                else:
+                    second_sign = None
+                    if second_literal_type[0] == "*":
+                        second_is_pointer = True
+
+
+        match(operator):
+            case "bitnot":
+                if second_sign not in ["i", "u"] or second_is_pointer:
+                    fatal_error(operator, "Can only perform bitwise not on integer types.")
+                return second_literal_type
+            case "lognot":
+                if second_sign is None or second_is_pointer:
+                    fatal_error(operator, "Can only perform logical not on scalar types.")
+                return "u8"
+            case "deref":
+                if not second_is_pointer:
+                    fatal_error(operator, "Can only dereference pointers.")
+                return second_literal_type[1:]
+            case "ref":
+                if second_literal_type is None:
+                    return "NA"
+                return f"*{second_literal_type}"
+            case "%":
+                if first_sign not in ["i", "u"] or first_is_pointer or second_sign not in ["i", "u"] or second_is_pointer:
+                    fatal_error(operator, "Can only perform % between two integers.")
+
+                if first_literal_type == second_literal_type:
+                    return first_literal_type
+
+                result = first_literal_type
+                if first_size != second_size:
+                    if int(second_size) > int(first_size):
+                        result = second_literal_type
+
+                return result
+            case "^":
+                if first_sign not in ["i", "u"] or first_is_pointer or second_sign not in ["i", "u"] or second_is_pointer:
+                    fatal_error(operator, "Can only perform ^ between two integers.")
+
+                if first_literal_type == second_literal_type:
+                    return first_literal_type
+
+                result = first_literal_type
+                if first_size != second_size:
+                    if int(second_size) > int(first_size):
+                        result = second_literal_type
+
+                return result
+            case "&":
+                if first_sign not in ["i", "u"] or first_is_pointer or second_sign not in ["i", "u"] or second_is_pointer:
+                    fatal_error(operator, "Can only perform & between two integers.")
+
+                if first_literal_type == second_literal_type:
+                    return first_literal_type
+
+                result = first_literal_type
+                if first_size != second_size:
+                    if int(second_size) > int(first_size):
+                        result = second_literal_type
+
+                return result
+            case "|":
+                if first_sign not in ["i", "u"] or first_is_pointer or second_sign not in ["i", "u"] or second_is_pointer:
+                    fatal_error(operator, "Can only perform | between two integers.")
+
+                if first_literal_type == second_literal_type:
+                    return first_literal_type
+
+                result = first_literal_type
+                if first_size != second_size:
+                    if int(second_size) > int(first_size):
+                        result = second_literal_type
+
+                return result
+            case "-":
+                pass
+            case "+":
+                pass
+            case "<":
+                pass
+            case ">":
+                pass
+            case "*":
+                pass
+            case "==":
+                pass
+            case "->":
+                pass
+            case "&&":
+                pass
+            case "||":
+                pass
+            case ".":
+                pass
+            case "access":
+                pass
+            case ">>":
+                pass
+            case "<<":
+                pass
+            case ",":
+                pass
+            case "!=":
+                pass
+            case "<=":
+                pass
+            case ">=":
+                pass
+            case "un+":
+                pass
+            case "un-":
+                pass
+
+
+        return "NA"
+
 
     def break_multiple_operations(self, tokens:list[Token]) -> list[Token]:
         dbg("Breaking lines that have multiple operations...")
@@ -941,7 +1222,7 @@ class Operator:
                     for y in prefix:
                         result.append(y)
                 else:
-                    # result.append(Token("$INFER", x.line_number, x.filename))
+                    result.append(Token("$INFER", x.line_number, x.filename))
                     result.append(Token("#" + str(self.varnum), x.line_number, x.filename))
                     result.append(Token("=", x.line_number, x.filename))
                     val_stack.append(Token("#" + str(self.varnum), x.line_number, x.filename))

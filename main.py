@@ -2,6 +2,7 @@
 import sys
 
 from debug import *
+import standard
 
 import cli_parser
 import lexer
@@ -100,10 +101,14 @@ class Main:
         print_errors()
         dbg("##############################")
         dbg("Performing Memory Checking...")
+
         for x in tokens:
-            print(f"Checking function ({x.name})")
-            memory_check.check_memory([y.token for y in x.tokens])
-            print("\tFunction is Safe")
+            if issubclass(type(x), standard.Function):
+                print(f"Checking function ({x.name})")
+                memory_check.check_memory([y.token for y in x.tokens])
+                print("\tFunction is Safe")
+            else:
+                print(f"Skipping ({x})")
 
         return 0
 
