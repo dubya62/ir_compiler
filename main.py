@@ -28,17 +28,18 @@ class Main:
         return cli_args
 
 
-    def start(self, input_files:None) -> int:
+    def start(self, args:str=None) -> int:
         dbg("Starting the IR compiler...")
 
-        if input_files == None or len(input_files) < 1:
+        if args == None:
             cli_args = self.parse_args()
-            input_files = cli_args.input_files
+        else:
+            cli_args = cli_parser.CliArgs(sys.argv)
         
         # perform lexing
         dbg("##############################")
         dbg("Performing Lexical Analysis...")
-        the_lexer = lexer.Lexer(input_files[0])
+        the_lexer = lexer.Lexer(cli_args.input_files[0])
         tokens = the_lexer.tokens
 
         dbg("Lexical Anaylsis Finished!")
