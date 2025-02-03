@@ -38,10 +38,11 @@ class Constraint:
 
 
 class Function(Token):
-    def __init__(self, name:str, return_type:Type, arg_types:list[Type], arg_constraints:list[Constraint], tokens:list[str], declaration:bool):
+    def __init__(self, name:str, return_type:Type, args:list[Token], arg_types:list[Type], arg_constraints:list[Constraint], tokens:list[str], declaration:bool):
         Token.__init__(self, "$FUNCTION_DEFINITION", 0, ".")
         self.name = name
         self.return_type = return_type
+        self.args = args
         self.arg_types = arg_types
         self.arg_constraints = arg_constraints
         self.tokens = tokens
