@@ -93,6 +93,7 @@ class Main:
         dbg("Performing Operator Conversion...")
         the_operator = operator.Operator(tokens, final_varnum, variable_names)
         tokens = the_operator.tokens
+        the_types = the_operator.token_types
 
         dbg("Finished Performing Operator Conversion!")
         dbg("Resulting Tokens:")
@@ -102,8 +103,7 @@ class Main:
 
         dbg("##############################")
         dbg("Performing Type Checking")
-        the_types = type_checker.TypeChecker(tokens)
-        print(the_operator.token_types)
+        type_checker.TypeChecker(tokens)
 
         print_errors()
         dbg("##############################")
