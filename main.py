@@ -117,7 +117,7 @@ class Main:
             else:
                 print(f"Skipping ({x})")
 
-        return 0
+        return tokens, the_types
 
 
 if __name__ == '__main__':
