@@ -1354,7 +1354,7 @@ class Operator:
                 tokens[i] = the_enum
             i += 1
 
-        # get funcion definitions now
+        # get function definitions now
         i = 0
         n = len(tokens)
         while i < n:
@@ -1365,6 +1365,8 @@ class Operator:
                     # this is a function def
                     the_name = self.variable_names[tokens[i].token]
                     return_type = standard.Type(self.token_types[int(tokens[i].token[1:])])
+
+                    # TODO: set the type of the function's variable in self.token_types
 
                     arg_types = []
                     arg_constraints = []

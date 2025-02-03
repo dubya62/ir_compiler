@@ -20,19 +20,25 @@ class Main:
     def __init__(self):
         pass
 
-
-    def start(self) -> int:
-        dbg("Starting the TCABIR compiler...")
-
+    def parse_args(self):
         # parse cli args
         dbg("##############################")
         dbg("Parsing Command Line Arguments")
         cli_args = cli_parser.CliArgs(sys.argv)
+        return cli_args
+
+
+    def start(self, input_files:None) -> int:
+        dbg("Starting the IR compiler...")
+
+        if input_files == None or len(input_files) < 1:
+            cli_args = self.parse_args()
+            input_files = cli_args.input_files
         
         # perform lexing
         dbg("##############################")
         dbg("Performing Lexical Analysis...")
-        the_lexer = lexer.Lexer(cli_args.input_files[0])
+        the_lexer = lexer.Lexer(input_files[0])
         tokens = the_lexer.tokens
 
         dbg("Lexical Anaylsis Finished!")
