@@ -828,6 +828,11 @@ class Operator:
                         i += 1
                         continue
 
+                    if len(self.token_types) > the_varnum:
+                        if self.token_types[the_varnum] != "N/A":
+                            i += 1
+                            continue
+
                     while len(self.token_types) <= the_varnum:
                         the_varnum.append("NA")
 
