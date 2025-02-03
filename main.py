@@ -31,10 +31,10 @@ class Main:
     def start(self, args:str=None) -> int:
         dbg("Starting the IR compiler...")
 
-        if args == None:
+        if args is None:
             cli_args = self.parse_args()
         else:
-            cli_args = cli_parser.CliArgs(sys.argv)
+            cli_args = cli_parser.CliArgs(args)
         
         # perform lexing
         dbg("##############################")
