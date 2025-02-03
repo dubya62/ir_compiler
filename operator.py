@@ -830,7 +830,8 @@ class Operator:
 
                     if len(self.token_types) > the_varnum:
                         if self.token_types[the_varnum] != "N/A":
-                            i += 1
+                            del tokens[i]
+                            n -= 1
                             continue
 
                     while len(self.token_types) <= the_varnum:
