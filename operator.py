@@ -1485,8 +1485,8 @@ class Operator:
                                 self.token_types.append("NA")
 
                             func.args.insert(0, Token(f"#{self.varnum}", func.tokens[i-1].filename, func.tokens[i-1].line_number))
-                            func.arg_types.insert(0, func.return_type)
-                            self.token_types[self.varnum] = standard.Type(func.return_type.type)
+                            func.arg_types.insert(0, standard.Type(f"*{func.return_type.type}"))
+                            self.token_types[self.varnum] = standard.Type(f"*{func.return_type.type}")
                             func.arg_constraints.insert(0, standard.Constraint([]))
                             func.return_type = standard.Type("void")
 
