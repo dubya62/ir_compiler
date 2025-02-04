@@ -55,11 +55,11 @@ class Operator:
         self.typedefs = []
         self.tokens = self.parse_structs_unions_enums_and_typedefs(self.tokens)
 
-        # TODO: convert returns
-        self.tokens = self.convert_returns(self.tokens)
-
         # remove un+ and un-
         self.tokens = self.remove_unary_operators(self.tokens)
+
+        # convert returns
+        self.convert_returns()
 
         # remove ->
         self.remove_arrows()
@@ -1442,18 +1442,55 @@ class Operator:
 
 
 
-    def convert_returns(self, tokens:list[Token]) -> list[Token]:
+    def convert_returns(self):
         # int foo(int x){return 3;}
         # y = foo(3);
         # =>
         # void foo(int* z, int x){*z = 3;}
         # foo(&y, 3);
-        i = 0
-        n = len(tokens)
-        while i < n:
-            i += 1
 
-        return tokens
+        for func in self.functions:
+            i = 0
+            n = len(func.tokens)
+            print(f"Converting returns:")
+            print(f"{func.arg_types}")
+            print(f"{func.return_type}")
+            print(func.tokens)
+
+            while i < n:
+                if func.tokens[i] == "return":
+                    if i + 1 < len(func.tokens):
+                        if func.tokens[i+1].token != ";":
+                            # this is an actual return
+                            func.tokens[i] = Token(f"#{self.varnum}", func.tokens[i].filename, func.tokens[i].line_number)
+                            i += 1
+                            func.tokens.insert(i, Token("access", func.tokens[i].filename, func.tokens[i].line_number))
+                            i += 1
+                            n += 1
+                            func.tokens.insert(i, Token("0", func.tokens[i].filename, func.tokens[i].line_number))
+                            i += 1
+                            n += 1
+                            func.tokens.insert(i, Token("=", func.tokens[i].filename, func.tokens[i].line_number))
+                            i += 3
+                            n += 1
+
+                            func.tokens.insert(i, Token("return", func.tokens[i-1].filename, func.tokens[i-1].line_number))
+                            i += 1
+                            n += 1
+                            func.tokens.insert(i, Token(";", func.tokens[i-1].filename, func.tokens[i-1].line_number))
+                            i += 1
+                            n += 1
+                            
+
+                            func.args.insert(0, Token(f"#{self.varnum}", func.tokens[i-1].filename, func.tokens[i-1].line_number))
+                            func.arg_types.insert(0, func.return_type)
+                            func.arg_constraints.insert(0, standard.Constraint([]))
+                            func.return_type = standard.Type("void")
+
+                            self.varnum += 1
+                i += 1
+
+
 
 
     def remove_unary_operators(self, tokens:list[Token]) -> list[Token]:

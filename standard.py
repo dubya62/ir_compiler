@@ -49,7 +49,7 @@ class Function(Token):
         self.declaration = declaration
 
     def __str__(self):
-        return f"Function{' Declaration' if self.declaration else ''} {self.name} -> {self.return_type}\narguments:\n{['\t' + self.arg_types[x].__str__() + self.arg_constraints[x].__str__() + '\n' for x in range(len(self.arg_types))]}\nTokens: {self.tokens}\n"
+        return f"Function{' Declaration' if self.declaration else ''} {self.name} -> {self.return_type}\narguments:\n{[self.arg_types[x].__str__() + ':' +  self.arg_constraints[x].__str__() for x in range(len(self.arg_types))]}\nTokens: {self.tokens}\n"
 
     def __repr__(self):
         return self.__str__()
