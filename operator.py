@@ -1494,12 +1494,32 @@ class Operator:
             print(f"{func.return_type}")
             print(func.tokens)
 
+            if func.return_type.type == "void":
+                return_var = None
+                return_type = None
+                return_varnum = None
+            else:
+                return_var = f"#{self.varnum}"
+                return_varnum = self.varnum
+                return_type = standard.Type(f"*{func.return_type.type}")
+
+                func.args.insert(0, Token(f"{return_var}", func.tokens[i-1].filename, func.tokens[i-1].line_number))
+                func.arg_types.insert(0, standard.Type(f"*{func.return_type.type}"))
+
+                func.arg_constraints.insert(0, standard.Constraint([]))
+                func.return_type = standard.Type("void")
+
+                self.varnum += 1
+
+
             while i < n:
                 if func.tokens[i] == "return":
                     if i + 1 < len(func.tokens):
                         if func.tokens[i+1].token != ";":
                             # this is an actual return
-                            func.tokens[i] = Token(f"#{self.varnum}", func.tokens[i].filename, func.tokens[i].line_number)
+                            if return_type is None:
+                                fatal_error(func.tokens[i], "Cannot return value in void function.")
+                            func.tokens[i] = Token(f"{return_var}", func.tokens[i].filename, func.tokens[i].line_number)
                             i += 1
                             func.tokens.insert(i, Token("access", func.tokens[i].filename, func.tokens[i].line_number))
                             i += 1
@@ -1521,15 +1541,7 @@ class Operator:
                             while len(self.token_types) <= self.varnum:
                                 self.token_types.append("NA")
 
-                            func.args.insert(0, Token(f"#{self.varnum}", func.tokens[i-1].filename, func.tokens[i-1].line_number))
-                            func.arg_types.insert(0, standard.Type(f"*{func.return_type.type}"))
-                            self.token_types[self.varnum] = standard.Type(f"*{func.return_type.type}")
-                            func.arg_constraints.insert(0, standard.Constraint([]))
-                            func.return_type = standard.Type("void")
-
-
-
-                            self.varnum += 1
+                            self.token_types[self.varnum] = standard.Type(return_type)
                 i += 1
 
 
