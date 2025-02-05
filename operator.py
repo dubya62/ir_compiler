@@ -80,6 +80,7 @@ class Operator:
         self.remove_logical_not()
 
         # convert derefs to accesses
+        self.convert_derefs_to_accesses()
 
         # remove remaining parenthesis
         self.remove_remaining_parenthesis()
@@ -1866,6 +1867,23 @@ class Operator:
                     del func.tokens[i]
                     i -= 1
                     n -= 1
+                i += 1
+
+
+    def convert_derefs_to_accesses(self):
+        for func in self.functions:
+            i = 0
+            n = len(func.tokens)
+            while i < n:
+                if func.tokens[i] == "deref":
+                    if i == 0 or i + 1 >= n:
+                        fatal_error(func.tokens[i], "Expected pointer after deref.")
+                        continue
+                    temp = func.tokens[i-1]
+                    func.tokens[i-1] = func.tokens[i+1]
+                    func.tokens[i+1] = temp
+
+                    func.tokens[i].token = "access"
                 i += 1
 
         
