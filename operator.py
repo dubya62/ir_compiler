@@ -1509,6 +1509,11 @@ class Operator:
                 func.arg_constraints.insert(0, standard.Constraint([]))
                 func.return_type = standard.Type("void")
 
+                while len(self.token_types) <= self.varnum:
+                    self.token_types.append("NA")
+
+                self.token_types[self.varnum] = standard.Type(return_type)
+
                 self.varnum += 1
 
 
@@ -1538,10 +1543,6 @@ class Operator:
                             i += 1
                             n += 1
                             
-                            while len(self.token_types) <= self.varnum:
-                                self.token_types.append("NA")
-
-                            self.token_types[self.varnum] = standard.Type(return_type)
                 i += 1
 
 
