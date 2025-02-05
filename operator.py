@@ -1044,44 +1044,80 @@ class Operator:
                         result = second_literal_type
 
                 return result
-            case "-":
+            case "-": # TODO
                 pass
             case "+":
-                pass
+                if first_is_pointer:
+                    if second_is_pointer:
+                        fatal_error(operator, "Cannot add two pointers together.")
+                    return first_literal_type
+                if second_is_pointer: 
+                    if first_is_pointer:
+                        fatal_error(operator, "Cannot add two pointers together.")
+                    return second_literal_type
+                
+                if first_sign == "f":
+                    if int(first_size) > int(second_size):
+                        return first_literal_type
+                    return f"{first_sign}{second_size}"
+                if second_size == "f":
+                    if int(second_size) > int(first_size):
+                        return second_literal_type
+                    return f"{second_sign}{first_size}"
+
+                if int(second_size) > int(first_size):
+                    return f"i{second_size}"
+                return f"i{first_size}"
             case "<":
-                pass
+                return f"i32"
             case ">":
-                pass
+                return f"i32"
             case "*":
-                pass
+                if first_is_pointer or second_is_pointer:
+                    fatal_error(operator, "Cannot multiply by a pointer.")
+                    
+                if first_sign == "f":
+                    if int(first_size) > int(second_size):
+                        return first_literal_type
+                    return f"{first_sign}{second_size}"
+                if second_size == "f":
+                    if int(second_size) > int(first_size):
+                        return second_literal_type
+                    return f"{second_sign}{first_size}"
+
+                if int(second_size) > int(first_size):
+                    return f"i{second_size}"
+                return f"i{first_size}"
             case "==":
-                pass
-            case "->":
+                return f"i32"
+            case "->": # TODO
                 pass
             case "&&":
-                pass
+                return f"i32"
             case "||":
-                pass
+                return f"i32"
             case ".":
                 pass
             case "access":
+                if not first_is_pointer:
+                    fatal_error(operator, "Can only access pointers.")
+                return first_literal_type[1:]
+            case ">>": # TODO
                 pass
-            case ">>":
-                pass
-            case "<<":
+            case "<<": # TODO
                 pass
             case ",":
-                pass
+                return f"{first_literal_type},{second_literal_type}"
             case "!=":
-                pass
+                return f"i32"
             case "<=":
-                pass
+                return f"i32"
             case ">=":
-                pass
+                return f"i32"
             case "un+":
-                pass
+                return second_literal_type
             case "un-":
-                pass
+                return second_literal_type
 
 
         return "NA"
