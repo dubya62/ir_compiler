@@ -1,6 +1,10 @@
 
 #include <stdio.h>
 
+void test(int c){
+    c = 2;
+}
+
 
 int main(int argc, char** argv){
     

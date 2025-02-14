@@ -61,18 +61,56 @@ class Converter:
 
         brace_levels = []
         jump_labels = []
+        jump_back_labels = []
+        statement_increments = []
         open_braces = 0
 
         while i < n:
             if tokens[i] in ["for", "while", "switch"]:
+                increment = []
+                if tokens[i] == "for":
+                    j = i
+                    opened = []
+                    condition = 0
+                    while j < n:
+                        if tokens[j] == "(":
+                            opened.append("(")
+                        elif tokens[j] == ")":
+                            if len(opened) == 0:
+                                fatal_error(tokens[j], "Unmatched )...")
+                            opened.pop()
+                            if len(opened) == 0:
+                                break
+                        elif tokens[j] == ";":
+                            if len(opened) == 1:
+                                condition += 1
+                                j += 1
+                                continue
+
+                        if condition == 2:
+                            increment.append(tokens[j])
+                        j += 1
+                print(f"increment: {increment}")
+                statement_increments.append(increment)
                 brace_levels.append(open_braces)
                 jump_labels.append(self.current_label)
+                self.current_label += 1
+                jump_back_labels.append(self.current_label)
+                tokens.insert(i, Token("@" + str(self.current_label), tokens[i].line_number, tokens[i].filename))
+                i += 1
+                tokens.insert(i, Token(":", tokens[i].line_number, tokens[i].filename))
+                i += 1
+                n += 2
                 self.current_label += 1
             elif tokens[i] == "{":
                 open_braces += 1
             elif tokens[i] == "}":
                 open_braces -= 1
 
+                print("+++++++++++")
+                print(tokens)
+                print(brace_levels)
+                print(open_braces)
                 if len(brace_levels) > 0 and brace_levels[-1] == open_braces:
                     brace_levels.pop()
                     i += 1
@@ -84,7 +122,23 @@ class Converter:
                     n += 1
                     self.current_label += 1
                     jump_labels.pop()
+                    jump_back_labels.pop()
+                    statement_increments.pop()
                     continue
+            elif tokens[i] == "continue":
+                if len(jump_back_labels) == 0:
+                    fatal_error(tokens[i], "Cannot break outside of loop...")
+                tokens[i].token = "@" + str(jump_back_labels[-1])
+                tokens.insert(i, Token("goto", tokens[i].line_number, tokens[i].filename))
+                for tok in statement_increments[-1]:
+                    tokens.insert(i, tok)
+                    i += 1
+                    n += 1
+                if len(statement_increments[-1]) > 0:
+                    tokens.insert(i, Token(";", tokens[i].line_number, tokens[i].filename))
+                    i += 1
+                    n += 1
+                n += 1
             elif tokens[i] == "break":
                 if len(jump_labels) == 0:
                     fatal_error(tokens[i], "Cannot break outside of loop...")
@@ -177,6 +231,18 @@ class Converter:
 
         while i < n:
             if tokens[i] == "for":
+                original_jump = None
+                if i > 1:
+                    if tokens[i-1] == ":":
+                        original_jump = tokens[i-2]
+                        del tokens[i-1]
+                        i -= 1
+                        n -= 1
+                        del tokens[i-1]
+                        i -= 1
+                        n -= 1
+
+
                 tokens[i].token = "if"
 
                 if i + 1 >= n:
@@ -198,12 +264,17 @@ class Converter:
                     tokens.insert(i, x)
                     i += 1
                     n += 1
-                tokens.insert(i, Token("@" + str(self.current_label), tokens[i].line_number, tokens[i].filename))
+                if original_jump is None:
+                    tokens.insert(i, Token("@" + str(self.current_label), tokens[i].line_number, tokens[i].filename))
+                else:
+                    tokens.insert(i, original_jump)
                 i += 1
                 n += 1
                 tokens.insert(i, Token(":", tokens[i].line_number, tokens[i].filename))
                 i += 1
                 n += 1
+
+
 
                 last_start = i + 1
                 while last_start < n:

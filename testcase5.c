@@ -1,13 +1,12 @@
 
 
-struct TestStruct {
-    int a;
-};
-
 int main(int argc, char** argv){
-    struct TestStruct *test;
-    struct TestStruct test2;
-
-    int a = (unsigned int) -7;
+    int j=0;
+    for (int i=0; i<10; i++){
+        if (j > 3){
+            continue;
+        }
+        j++;
+    }
     return 0;
 }

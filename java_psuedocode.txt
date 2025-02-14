@@ -1,0 +1,14 @@
+
+Specify Main file
+Open all Java files in this directory
+
+lex into tokens
+handle import statements
+handle inheritance
+convert classes to structures and their methods to normal functions
+convert the new keyword to call the constructor
+convert booleans to ints
+convert this to use functions/members
+convert try, catch, finally, and throw
+handle static
+handle super

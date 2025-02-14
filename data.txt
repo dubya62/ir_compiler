@@ -1,0 +1,161 @@
+Starting the IR compiler...
+##############################
+Parsing Command Line Arguments
+Invocation: ['main.py', 'testcase3.c']
+Cli Parser Output:
+Input Files: ['testcase3.c']
+Output File: a.out
+Include Dirs: []
+Compiling to Object: False
+##############################
+Performing Lexical Analysis...
+Opening file testcase3.c...
+File read successfully!
+Lexical Anaylsis Finished!
+Resulting Tokens:
+[
+, #, include,  , <, stdio, ., h, >, 
+, 
+, void,  , test, (, int,  , c, ), {, 
+,  ,  ,  ,  , c,  , =,  , 2, ;, 
+, }, 
+, 
+, 
+, int,  , main, (, int,  , argc, ,,  , char, *, *,  , argv, ), {, 
+,  ,  ,  ,  , 
+,  ,  ,  ,  , for,  , (, int,  , i, =, 0, ;,  , i, <, 10, ;,  , i, ++, ), {, 
+,  ,  ,  ,  ,  ,  ,  ,  , printf, (, ", Hello, ,,  , World, !, \, n, ", ), ;, 
+,  ,  ,  ,  , }, 
+, 
+,  ,  ,  ,  , return,  , 0, ;, 
+, }, 
+]
+##############################
+Performing Basic Normalization...
+Removing Comments From The Tokens...
+Finished Removing Comments From The Tokens!
+Combining string and char literals to single tokens...
+Finished combining string and char literals to single tokens...
+Basic Normalization Finished!
+Resulting Tokens:
+[#, include, <, stdio, ., h, >, #END_DIRECTIVE, void, test, (, int, c, ), {, c, =, 2, ;, }, int, main, (, int, argc, ,, char, *, *, argv, ), {, for, (, int, i, =, 0, ;, i, <, 10, ;, i, ++, ), {, printf, (, "Hello, World!\n", ), ;, }, return, 0, ;, }]
+##############################
+Handling Compiler Directives...
+Handling compiler directives...
+Including file
+[include, <, stdio, ., h, >]
+Performing previous compilation steps on included code...
+Including library: [stdio, ., h]
+Finished handling compiler directives.
+Finished Handling Compiler Directives!
+Resulting Tokens:
+[void, test, (, int, c, ), {, c, =, 2, ;, }, int, main, (, int, argc, ,, char, *, *, argv, ), {, for, (, int, i, =, 0, ;, i, <, 10, ;, i, ++, ), {, printf, (, "Hello, World!\n", ), ;, }, return, 0, ;, }]
+##############################
+Performing Variable Simplification...
+Converting Type Tokens...
+Converting types of: [void, test, (, int, c, ), {, c, =, 2, ;, }, int, main, (, int, argc, ,, char, *, *, argv, ), {, for, (, int, i, =, 0, ;, i, <, 10, ;, i, ++, ), {, printf, (, "Hello, World!\n", ), ;, }, return, 0, ;, }]
+Finished Converting Type Tokens!
+Handling typedefs...
+Finished Handling typedefs...
+Generalizing variables...
+Finished generalizing variables!
+Removing extra function scopes...
+[$TYPE, #0, #FIXFUNC, {, (, $TYPE, #1, ), {, #1, =, 2, ;, }, }, $TYPE, #2, #FIXFUNC, {, (, $TYPE, #3, ,, $TYPE, #4, ), {, {, for, (, $TYPE, #5, =, 0, ;, #5, <, 10, ;, #5, ++, ), {, #6, (, "Hello, World!\n", ), ;, }, }, return, 0, ;, }, }]
+Finished removing extra function scopes...
+Finished Performing Variable Simplification!
+Resulting Tokens:
+[$TYPE, #0, (, $TYPE, #1, ), {, #1, =, 2, ;, }, $TYPE, #2, (, $TYPE, #3, ,, $TYPE, #4, ), {, {, for, (, $TYPE, #5, =, 0, ;, #5, <, 10, ;, #5, ++, ), {, #6, (, "Hello, World!\n", ), ;, }, }, return, 0, ;, }]
+##############################
+Performing Conversion...
+Finished Performing Conversion!
+Resulting Tokens:
+[$TYPE, #0, (, $TYPE, #1, ), {, #1, =, 2, ;, }, $TYPE, #2, (, $TYPE, #3, ,, $TYPE, #4, ), {, {, $TYPE, #5, =, 0, ;, @2, :, if, (, #5, <, 10, ), {, #6, (, "Hello, World!\n", ), ;, #5, ++, ;, goto, @2, ;, }, @0, :, }, return, 0, ;, }]
+##############################
+Performing Operator Conversion...
+Breaking operations from if statements
+Converting prefix and postfix operators...
+Finished converting prefix and postfix operators...
+CONVERTING UNARY OPERATORS: [$TYPE, #0, (, $TYPE, #1, ), {, #1, =, 2, ;, }, $TYPE, #2, (, $TYPE, #3, ,, $TYPE, #4, ), {, {, $TYPE, #5, =, 0, ;, @2, :, $INFER, #7, =, #5, <, 10, ;, if, (, #7, ), {, $INFER, #9, =, "Hello, World!\n", ;, #6, (, #9, ), ;, #5, ;, #5, =, #5, +, (, 1, ), ;, goto, @2, ;, }, @0, :, }, $INFER, #8, =, 0, ;, return, #8, ;, }]
+Removing TYPES:
+[$TYPE, #0, (, $TYPE, #1, ), {, #1, =, 2, ;, }, $TYPE, #2, (, $TYPE, #3, ,, $TYPE, #4, ), {, {, $TYPE, #5, =, 0, ;, @2, :, $INFER, #7, =, #5, <, 10, ;, if, (, #7, ), {, $INFER, #9, =, "Hello, World!\n", ;, #6, call, (, #9, ), ;, #5, ;, #5, =, #5, +, (, 1, ), ;, goto, @2, ;, }, @0, :, }, $INFER, #8, =, 0, ;, return, #8, ;, }]
+Parsing... [void]
+type val: [void] void
+Parsing... [int]
+type val: [int] i32
+Parsing... [int]
+type val: [int] i32
+Parsing... [int]
+type val: [int] i32
+Parsing... [char, *, *]
+type val: [char, *, *] **u8
+Parsing... [int]
+type val: [int] i32
+Token types: ['void', 'i32', 'i32', 'i32', '**u8', 'i32', 'NA', 'NA', 'NA', 'NA']
+Breaking lines that have multiple operations...
+Finished breaking lines that have multiple operations!
+Removing remaining inferences...
+FOUND INFERENCE #7
+FOUND INFERENCE #9
+FOUND INFERENCE #8
+Finished removing remaining inferences!
+[#0, (, #1, ), {, #1, =, 2, ;, }, #2, (, #3, ,, #4, ), {, {, #5, =, 0, ;, @2, :, #7, =, #5, <, 10, ;, if, (, #7, ), {, #9, =, "Hello, World!\n", ;, #6, call, (, #9, ), ;, #5, ;, #5, =, #5, +, (, 1, ), ;, goto, @2, ;, }, @0, :, }, #8, =, 0, ;, return, #8, ;, }]
+ARGS: [[#1]]
+ARGNAMES: [#1]
+ARGS: [[#3], [#4]]
+ARGNAMES: [#3, #4]
+Converting returns:
+[]
+void
+[#1, =, 2, ;]
+Converting returns:
+[]
+i32
+[{, #5, =, 0, ;, @2, :, #7, =, #5, <, 10, ;, if, (, #7, ), {, #9, =, "Hello, World!\n", ;, #6, call, (, #9, ), ;, #5, ;, #5, =, #5, +, (, 1, ), ;, goto, @2, ;, }, @0, :, }, #8, =, 0, ;, return, #8, ;]
+Breaking lines that have multiple operations...
+Finished breaking lines that have multiple operations!
+Breaking lines that have multiple operations...
+Finished breaking lines that have multiple operations!
+Breaking lines that have multiple operations...
+Finished breaking lines that have multiple operations!
+Breaking lines that have multiple operations...
+Finished breaking lines that have multiple operations!
+Breaking lines that have multiple operations...
+Finished breaking lines that have multiple operations!
+Breaking lines that have multiple operations...
+Finished breaking lines that have multiple operations!
+Breaking lines that have multiple operations...
+Finished breaking lines that have multiple operations!
+Breaking lines that have multiple operations...
+Finished breaking lines that have multiple operations!
+Removing remaining inferences...
+Finished removing remaining inferences!
+[Function test -> void
+arguments:
+[]
+Tokens: [#1, =, 2, ;]
+, Function main -> void
+arguments:
+['*i32:Constraint: []']
+Tokens: [{, #5, =, 0, ;, @2, :, #7, =, #5, <, 10, ;, if, #7, {, #9, =, "Hello, World!\n", ;, #6, call, #9, ;, #5, ;, #5, =, #5, +, 1, ;, goto, @2, ;, }, else, {, }, @0, :, }, #8, =, 0, ;, #10, access, 0, =, #8, ;, return, ;]
+]
+Finished Performing Operator Conversion!
+Resulting Tokens:
+[Function test -> void
+arguments:
+[]
+Tokens: [#1, =, 2, ;]
+, Function main -> void
+arguments:
+['*i32:Constraint: []']
+Tokens: [{, #5, =, 0, ;, @2, :, #7, =, #5, <, 10, ;, if, #7, {, #9, =, "Hello, World!\n", ;, #6, call, #9, ;, #5, ;, #5, =, #5, +, 1, ;, goto, @2, ;, }, else, {, }, @0, :, }, #8, =, 0, ;, #10, access, 0, =, #8, ;, return, ;]
+]
+
+##############################
+Performing Type Checking
+0 NON-FATAL ERRORS ENCOUNTERED
+##############################
+Performing Memory Checking...
+Checking function (test)
+	Function is Safe
+Checking function (main)
+	Function is Safe
