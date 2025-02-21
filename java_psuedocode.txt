@@ -2,13 +2,29 @@
 Specify Main file
 Open all Java files in this directory
 
-lex into tokens
-handle import statements
+lex into tokens using breakChars
+    
+handle import statements (include required standard libraries and C implementations)
+    Need to write java standard library implementations in C
+
 handle inheritance
+    Place contents of super class in child class
+
 convert classes to structures and their methods to normal functions
+    Prepend class name in front of class methods
+
 convert the new keyword to call the constructor
+
 convert booleans to ints
+
 convert this to use functions/members
+
 convert try, catch, finally, and throw
+
 handle static
+    Class methods that do not require an instance
+
 handle super
+
+
+
