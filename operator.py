@@ -752,23 +752,28 @@ class Operator:
             match(type_tokens[i]):
                 case "int":
                     size = "32"
-                    sign = "i"
+                    if len(sign) == 0:
+                        sign = "i"
                 case "long":
                     size = "64"
-                    sign = "i"
+                    if len(sign) == 0:
+                        sign = "i"
                 case "short":
                     size = "16"
-                    sign = "i"
+                    if len(sign) == 0:
+                        sign = "i"
                 case "float":
                     sign = "f"
                 case "double":
                     sign = "f"
                 case "unsigned":
                     sign = "u"
+                    print("set sign to u")
                 case "signed":
                     sign = "i"
                 case "char":
-                    sign = "u"
+                    if len(sign) == 0:
+                        sign = "u"
                     size = "8"
                 case "void":
                     sign = "void"
