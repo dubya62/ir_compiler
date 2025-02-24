@@ -1440,7 +1440,7 @@ class Operator:
                     declaration = False
 
                     print(f"ARGS: {args}")
-                    arg_names = [x[0] for x in args]
+                    arg_names = [x[0] if len(x) > 0 else "" for x in args]
                     print(f"ARGNAMES: {arg_names}")
                     if len(args) == 1 and len(args[0]) == 1 and args[0][0] == "$TYPE" and len(args[0][0].types) == 1 and args[0][0].types[0] == "void":
                         arg_types = [self.variable_types[x] for x in args]

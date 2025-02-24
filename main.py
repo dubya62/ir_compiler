@@ -10,7 +10,7 @@ import normalizer
 import preprocessor
 import simplifier
 import converter
-import operator
+import operator_converter
 import type_checker
 
 import memory_check
@@ -91,7 +91,7 @@ class Main:
         # operator
         dbg("##############################")
         dbg("Performing Operator Conversion...")
-        the_operator = operator.Operator(tokens, final_varnum, variable_names)
+        the_operator = operator_converter.Operator(tokens, final_varnum, variable_names)
         tokens = the_operator.tokens
         the_types = the_operator.token_types
 
