@@ -2,7 +2,7 @@
 from debug import *
 from token import *
 
-from types import *
+from standard_types import *
 import standard
 
 

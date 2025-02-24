@@ -2,7 +2,7 @@
 from token import *
 from debug import *
 
-import types
+import standard_types
 
 
 def is_int_literal(token):
@@ -139,10 +139,10 @@ class Simplifier:
                 i = return_index
 
                 if tokens[i] == "union":
-                    new_union = types.Union(the_name, the_types, tokens[i].line_number, tokens[i].filename)
+                    new_union = standard_types.Union(the_name, the_types, tokens[i].line_number, tokens[i].filename)
                     tokens[i] = new_union
                 elif tokens[i] == "struct":
-                    new_struct = types.Structure(the_name, the_types, tokens[i].line_number, tokens[i].filename)
+                    new_struct = standard_types.Structure(the_name, the_types, tokens[i].line_number, tokens[i].filename)
                     tokens[i] = new_struct
 
             elif tokens[i].token in builtin_types:
@@ -177,7 +177,7 @@ class Simplifier:
                         i += 1
 
                 i = starting_index
-                new_enum = types.Enum(the_type, tokens[i].line_number, tokens[i].filename)
+                new_enum = standard_types.Enum(the_type, tokens[i].line_number, tokens[i].filename)
                 tokens[i] = new_enum
 
             
@@ -228,7 +228,7 @@ class Simplifier:
             j += 1
 
         i = return_index
-        tokens.insert(i, types.Type(result, the_line_number, the_filename))
+        tokens.insert(i, standard_types.Type(result, the_line_number, the_filename))
         n += 1
         return n - starting_len
 
