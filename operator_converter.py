@@ -1412,6 +1412,7 @@ class Operator:
                     starting_index = i
                     # this is a function def
                     the_name = self.variable_names[tokens[i].token]
+                    the_var = tokens[i].token
                     return_type = standard.Type(self.token_types[int(tokens[i].token[1:])])
 
                     # TODO: set the type of the function's variable in self.token_types
@@ -1471,7 +1472,7 @@ class Operator:
                         del tokens[starting_index]
                         i -= 1
                         n -= 1
-                    the_function = standard.Function(the_name, return_type, arg_names, arg_types, arg_constraints, func_tokens, declaration)
+                    the_function = standard.Function(the_name, the_var, return_type, arg_names, arg_types, arg_constraints, func_tokens, declaration)
                     if i < len(tokens):
                         tokens[i] = the_function
                     else:

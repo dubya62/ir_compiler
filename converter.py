@@ -63,10 +63,12 @@ class Converter:
         jump_labels = []
         jump_back_labels = []
         statement_increments = []
+        statement_names = []
         open_braces = 0
 
         while i < n:
             if tokens[i] in ["for", "while", "switch"]:
+                statement_names.append(tokens[i].token)
                 increment = []
                 if tokens[i] == "for":
                     j = i
@@ -124,11 +126,20 @@ class Converter:
                     jump_labels.pop()
                     jump_back_labels.pop()
                     statement_increments.pop()
+                    statement_names.pop()
                     continue
             elif tokens[i] == "continue":
                 if len(jump_back_labels) == 0:
                     fatal_error(tokens[i], "Cannot break outside of loop...")
-                tokens[i].token = "@" + str(jump_back_labels[-1])
+                the_label = 1
+                for j in range(-1, -len(statement_names)-1, -1):
+                    if statement_names[j] in ["for", "while"]:
+                        the_label = j
+                        break
+                if the_label == 1:
+                    fatal_error(tokens[i], "ERROR: Cannot use continue in switch-case.");
+
+                tokens[i].token = "@" + str(jump_back_labels[the_label])
                 tokens.insert(i, Token("goto", tokens[i].line_number, tokens[i].filename))
                 for tok in statement_increments[-1]:
                     tokens.insert(i, tok)

@@ -12,6 +12,7 @@ import simplifier
 import converter
 import operator_converter
 import type_checker
+import recursor
 
 import memory_check
 
@@ -100,6 +101,14 @@ class Main:
         dbg(tokens)
 
         dbg("")
+
+        dbg("##############################")
+        dbg("Reducing Recursion")
+        recursor.Recursor(tokens)
+
+        dbg("Finished Reducing Recursion!")
+        dbg("Resulting Tokens:")
+        dbg(tokens)
 
         dbg("##############################")
         dbg("Performing Type Checking")

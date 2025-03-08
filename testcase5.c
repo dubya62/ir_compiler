@@ -1,13 +1,20 @@
 
 
-typedef struct {
-    int a;
-    int b;
-} newType;
 
 int main(int argc, char** argv){
-
-    newType a = {2, 3};
+    int a = 2;
+    int b;
+    switch (a){
+        case 1:
+        case 3:
+            break;
+        case 4:
+        case 5:
+            b = 3;
+            break;
+        default:
+            b = 2;
+    }
     
     return 0;
 }
