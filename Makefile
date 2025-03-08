@@ -11,7 +11,7 @@ $(MAIN): $(CODEFILES) memory-checking
 
 memory-checking:
 	rm -rf memory-checker/
-	cp -r ~/Desktop/IR-Memory-Checker/ memory-checker
+	cp -r ~/Desktop/capstone/IR-Memory-Checker/ memory-checker
 	cp memory-checker/memory_check.py .
 
 

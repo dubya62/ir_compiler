@@ -183,7 +183,8 @@ class Preprocessor:
         filename = ""
         if tokens[1].token == "<" and tokens[-1].token == ">":
             filename = tokens[2:-1]
-            return self.handle_library_include(filename)
+            filename_string = "".join([tok.token for tok in filename])
+            return self.handle_library_include(filename_string, include_dirs, included_already, base_filename)
         elif len(tokens[1].token) > 2 and tokens[1].token[0] == '"' and tokens[-1].token[-1] == '"':
             filename = tokens[1].token[1:-1]
 
@@ -226,8 +227,55 @@ class Preprocessor:
         return result
         
 
-    def handle_library_include(self, filename:str)->list[Token]:
-        dbg(f"Including library: {filename}")
-        return []
+    def search_directory(self, filename, directory, include_dirs, included_already, base_filename):
+        splitted = os.path.split(filename)
+        base = os.path.join(directory, splitted[0])
+        tail = splitted[1]
+        try:
+            if tail in os.listdir(base):
+                dbg(f"{filename} found in {directory}")
+                filepath = os.path.join(base, tail)
+                result = lexer.Lexer(filepath).tokens
+                result = normalizer.Normalizer(result).tokens
+                result = self.handle_compiler_directives(result, include_dirs, included_already, directory)
+                dbg("Library included!")
+                return result
+        except:
+            pass
+        return None
 
+
+    def handle_library_include(self, filename:str, include_dirs, included_already, base_filename)->list[Token]:
+        dbg(f"Including library: {filename}")
+
+        # specified include directories
+        for directory in include_dirs:
+            result = self.search_directory(filename, directory, include_dirs, included_already, base_filename)
+            if result is not None:
+                return result
+
+        # linux/mac
+        dbg(f"Searching for {filename} in /usr/include")
+        result = self.search_directory(filename, "/usr/include/", include_dirs, included_already, "")
+        if result is not None:
+            return result
+        dbg(f"Searching for {filename} in /usr/local/include/")
+        result = self.search_directory(filename, "/usr/local/include/", include_dirs, included_already, "")
+        if result is not None:
+            return result
+
+        # windows
+        dbg(f"Searching for {filename} in C:/Program Files (x86)/Microsoft Visual Studio/.../VC/include/")
+        #self.search_directory(filename, os.path.join("C:", "Program Files (x86)", "Microsoft Visual Studio", ""))
+        dbg(f"Searching for {filename} in C:/MinGW/include/")
+        result = self.search_directory(filename, os.path.join("C:", "MinGW", "include"), include_dirs, included_already, "")
+        if result is not None:
+            return result
+        dbg(f"Searching for {filename} in C:/TDM-GCC/include/")
+        result = self.search_directory(filename, os.path.join("C:", "TDM-GCC", "include"), include_dirs, included_already, "")
+        if result is not None:
+            return result
+
+        dbg(f"Could not find standard library {filename}")
+        exit(1)
         
